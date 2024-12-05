@@ -1,80 +1,138 @@
 <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Dog or Cat Classifier</title>
-        <style>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dog or Cat Classifier</title>
+    <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 20px;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
         }
 
         h1 {
             text-align: center;
-            color: #333;
+            color: #444;
+            margin-bottom: 20px;
         }
 
         form {
-            margin: 20px auto;
-            width: 80%;
-            max-width: 600px;
+            margin: 0 auto;
+            width: 90%;
+            max-width: 500px;
             padding: 20px;
             background-color: #fff;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
         }
 
         input[type="file"] {
-            margin-bottom: 10px;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
         }
 
         input[type="submit"] {
-            background-color: #4CAF50;
+            width: 100%;
+            background-color: #007BFF;
             color: white;
             border: none;
-            padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
+            padding: 12px;
             font-size: 16px;
             border-radius: 5px;
             cursor: pointer;
         }
 
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
         #result {
             margin-top: 20px;
-            padding: 10px;
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 15px;
+            background-color: #e9f5e9;
+            border: 1px solid #c8e6c9;
+            border-radius: 8px;
+            color: #256029;
+            text-align: center;
+            display: none;
+        }
+
+        #error {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fdecea;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            color: #721c24;
+            text-align: center;
+            display: none;
         }
     </style>
-    </head>
-    <body>
-      <h1>Upload an Image to Classify</h1>
-      <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-          <input type="file" id="fileInput" name="file" accept="image/*">
-          <input type="submit" value="Upload">
-      </form>
-      <div id="result"></div>
-      <script>
-          const form = document.getElementById('uploadForm');
-          const fileInput = document.getElementById('fileInput');
-          const resultDiv = document.getElementById('result');
+</head>
+<body>
+    <h1>Dog or Cat Classifier</h1>
+    <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+        <label for="fileInput">Choose an Image to Classify</label>
+        <input type="file" id="fileInput" name="file" accept="image/*" required>
+        <input type="submit" value="Upload and Classify">
+    </form>
+    <div id="result"></div>
+    <div id="error"></div>
+    <script>
+        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const resultDiv = document.getElementById('result');
+        const errorDiv = document.getElementById('error');
 
-          form.addEventListener('submit', async (event) => {
-              event.preventDefault();
-              const formData = new FormData(form);
-              const response = await fetch('/upload', {
-                  method: 'POST',
-                  body: formData
-              });
-              const result = await response.json();
-              resultDiv.innerText = `Prediction: ${result.result}`;
-          });
-      </script>
-    </body>
-    </html>
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            // Clear previous results
+            resultDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            // Validate if a file is selected
+            if (!fileInput.files.length) {
+                errorDiv.innerText = "Please select an image file.";
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const result = await response.json();
+                resultDiv.innerText = `Prediction: ${result.result}`;
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                errorDiv.innerText = `An error occurred: ${error.message}`;
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
